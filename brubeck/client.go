@@ -30,7 +30,6 @@ type Client struct {
 	prefix    string // must be different across apps
 	host      string // the statsd server to send to
 	disabled  bool   // if true will not send stats. Useful for test/stage/dev
-	randomGen *rand.Rand
 	nc        net.Conn
 }
 
@@ -42,7 +41,6 @@ func NewClient(prefix string, host string, disabled bool) *Client {
 		host:      host,
 		disabled:  disabled,
 		prefix:    prefix,
-		randomGen: rand.New(rand.NewSource(time.Now().Unix())),
 	}
 	if !disabled {
 		client.newUDPSocket()
@@ -63,7 +61,7 @@ func (c *Client) sampleCounts(count int64, sampleRate float32) int64 {
 	// we have to send a mix of the truncated "count / sample_rate" and
 	// the ceil of that. The ratio is the splitThreshold.
 	splitThreshold := math.Mod(float64(float32(count)/sampleRate), float64(1))
-	if c.randomGen.Float64() >= splitThreshold {
+	if rand.Float64() >= splitThreshold {
 		return int64(float32(count) / sampleRate)
 	}
 	return int64(math.Ceil(float64(float32(count) / sampleRate)))
@@ -116,7 +114,7 @@ func (c *Client) DecrBatch(stat string, count int64) {
 
 // sampled returns True if the stat should be sent, otherwise False.
 func (c *Client) sampled(sampleRate float32) bool {
-	return c.randomGen.Float32() <= sampleRate
+	return rand.Float32() <= sampleRate
 }
 
 // IncrSampled increments a counter with sampling between 0 and 1.
