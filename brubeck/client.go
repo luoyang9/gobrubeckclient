@@ -27,10 +27,10 @@ const countFormat = "%d|c"
 
 // Client object that users interact with to send stats to Statsd.
 type Client struct {
-	prefix    string // must be different across apps
-	host      string // the statsd server to send to
-	disabled  bool   // if true will not send stats. Useful for test/stage/dev
-	nc        net.Conn
+	prefix   string // must be different across apps
+	host     string // the statsd server to send to
+	disabled bool   // if true will not send stats. Useful for test/stage/dev
+	nc       net.Conn
 }
 
 // NewClient creates a new graphite client. Not intended to be used
@@ -38,9 +38,9 @@ type Client struct {
 // goroutine.
 func NewClient(prefix string, host string, disabled bool) *Client {
 	client := &Client{
-		host:      host,
-		disabled:  disabled,
-		prefix:    prefix,
+		host:     host,
+		disabled: disabled,
+		prefix:   prefix,
 	}
 	if !disabled {
 		client.newUDPSocket()
