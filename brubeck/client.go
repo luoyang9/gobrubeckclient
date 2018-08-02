@@ -69,7 +69,13 @@ func (c *Client) sampleCounts(count int64, sampleRate float32) int64 {
 
 func (c *Client) newUDPSocket() {
 	hostname := c.host + ":" + strconv.Itoa(statsdPort)
-	conn, _ := net.DialTimeout("udp", hostname, 5*time.Second)
+	conn, err := net.DialTimeout("udp", hostname, 5*time.Second)
+	for retries := 3; err != nil && retries > 0; retries-- {
+		conn, err = net.DialTimeout("udp", hostname, 5*time.Second)
+	}
+	if err != nil {
+		fmt.Println("\033[33mWARNING: Brubeck client failed to connect to host: " + hostname + "\033[0m")
+	}
 	c.nc = conn
 }
 
@@ -89,7 +95,9 @@ func (c *Client) send(stat string, format string, value interface{}, timed bool)
 	}
 
 	fstat := c.formatStat(stat, format, value, timed)
-	c.nc.Write([]byte(fstat))
+	if c.nc != nil {
+		c.nc.Write([]byte(fstat))
+	}
 }
 
 // Incr increments a counter metric by one.
